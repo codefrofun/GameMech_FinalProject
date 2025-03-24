@@ -20,6 +20,12 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 moveVector;
     private bool isMoving = false;
 
+    private void Start()
+    {
+        HandleJump();
+        HandleRestart();
+    }
+
     // Awake is called when the script instance is being loaded
     private void Awake()
     {
@@ -48,6 +54,9 @@ public class PlayerMovement : MonoBehaviour
     {
         // Move the character based on the input direction and moveSpeed
         playerRigidbody.MovePosition(playerRigidbody.position + moveVector * moveSpeed * Time.fixedDeltaTime);
+
+
+        // playerRigidbody.velocity = new Vector2(playerSpeed, playerRigidbody.velocity.y); // Needed for x and y
     }
     void FixedUpdate()
     {
