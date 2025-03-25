@@ -37,7 +37,7 @@ public class InputManager : MonoBehaviour, GameInput.IPlayerActions
             if (Keyboard.current.wKey.isPressed) // Check if "W" is pressed
             {
                 // Trigger the Jump event
-                Debug.Log("W key detected for jump!");
+                Debug.Log("Space key detected for jump!");
                 InputActions.Jump?.Invoke(); // Trigger the jump action without arguments
             }
         }
