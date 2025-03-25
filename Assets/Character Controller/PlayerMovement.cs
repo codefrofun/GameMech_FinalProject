@@ -8,117 +8,85 @@ using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public static PlayerMovement instance;
+    public Rigidbody2D playerRigidbody;
 
-    [SerializeField] public float jumpForce = 5f;
+    [SerializeField] public float playerSpeed = 2f;  // Adjusted speed
+    [SerializeField] public float jumpForce = 2.2f;
     [SerializeField] private bool isGrounded;
-
-    public float slowWallBounce = 0.5f;
-    public float moveDirection = 1f;
-    public float moveSpeed = 2.0f;
-    public Rigidbody2D playerRigidbody; // Reference to the CharacterController component for movement control
-    public Vector2 moveVector;
     private bool isMoving = false;
+    public float moveDirection = 1f;
 
     private void Start()
     {
+        playerRigidbody = GetComponent<Rigidbody2D>();
+        if (playerRigidbody == null)
+        {
+            Debug.LogError("Rigidbody2D not found on player object!");
+        }
+    }
+
+
+    private void Update()
+    {
+        // Handle player horizontal movement
+        HandleHorizontalMovement();
+
+        // Handle jumping logic
         HandleJump();
+
+        // Handle level restart
         HandleRestart();
     }
 
-    // Awake is called when the script instance is being loaded
-    private void Awake()
+    void HandleHorizontalMovement()
     {
-        // Get the CharacterController component attached to the GameObject
-        playerRigidbody = this.GetComponent<Rigidbody2D>();
-        // Subscribe to the MovePlayerEvent to update movement direction
-        if (instance == null)
+        float moveInput = Input.GetAxis("Horizontal"); // Gets input for left/right movement (A/D or Left/Right arrow)
+        if (moveInput != 0)  // If there's movement input
         {
-            instance = this;
+            playerRigidbody.velocity = new Vector2(moveInput * playerSpeed, playerRigidbody.velocity.y); // Apply movement
+            isMoving = true; // Player is moving
         }
         else
         {
-            Destroy(gameObject);
+            isMoving = false; // Player is not moving
         }
-
-            InputActions.MovePlayerEvent += UpdateMoveVector;
     }
 
-    // Method to update the movement direction based on the input from InputManager
-    private void UpdateMoveVector(Vector2 InputVector)
-    {
-        moveVector = InputVector;
-    }
-
-    void HandlePlayerMovement(Vector2 moveVector)
-    {
-        // Move the character based on the input direction and moveSpeed
-        playerRigidbody.MovePosition(playerRigidbody.position + moveVector * moveSpeed * Time.fixedDeltaTime);
-
-
-        // playerRigidbody.velocity = new Vector2(playerSpeed, playerRigidbody.velocity.y); // Needed for x and y
-    }
-    void FixedUpdate()
-    {
-        // Handle the player movement using the current direction
-        HandlePlayerMovement(moveVector);
-    }
-    void OnDisable()
-    {
-        // Unsubscribe from the MovePlayerEvent
-        InputActions.MovePlayerEvent -= UpdateMoveVector;
-    }
 
     void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            if (isGrounded && isMoving)
-            {
-                Debug.Log("Player Jumped!");
-                playerRigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse); // Applies upward force
-                isGrounded = false;
-            }
+            Debug.Log("Player Jumped!");
+            playerRigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse); // Apply upward force
+            isGrounded = false; // Player is no longer grounded after jumping
         }
     }
 
     public void PlayerSwitchDirection()
     {
-        Debug.Log("Player hit a wall, switching direction");
+        Debug.Log("I hit a wall");
 
-        //Slows down player after wall collision
-        moveSpeed *= slowWallBounce;
-
-        // Reverse the movement direction by changing the sign of moveSpeed
-        moveSpeed = -moveSpeed;
-
-        // Update the player's velocity based on the new moveSpeed
-        playerRigidbody.velocity = new Vector2(moveSpeed, playerRigidbody.velocity.y);
+        // Reverse player movement direction if they hit a wall
+        moveDirection = -moveDirection;
+        playerRigidbody.velocity = new Vector2(moveDirection * playerSpeed, playerRigidbody.velocity.y);
     }
 
-
-    /// <summary>
-    /// Collision with walls so that player automatically turns, 
-    /// does not go through walls, follows path. 
-    /// (EVENTUALLY CODE THE APPEARING WALLS AND STONE WALLS THAT BREAK)
-    /// </summary>
-    /// <param name="collision"></param>
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Wall"))
         {
-            PlayerSwitchDirection();
+            moveDirection = -moveDirection; // Switch direction when hitting a wall
             Debug.Log("Player has collided with wall, will now switch directions");
         }
 
         if (collision.gameObject.CompareTag("Ground"))
         {
-            isGrounded = true; // Checks if player is on the ground, giving the ability to jump without jumping on air
+            isGrounded = true; // Player is on the ground, can jump again
             Debug.Log("Player is grounded!");
         }
     }
 
-    // R to restart level after player death
     void HandleRestart()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -127,7 +95,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Logic for level reset
+    // Restart the level by reloading the current scene
     void RestartLevel()
     {
         Scene currentScene = SceneManager.GetActiveScene();

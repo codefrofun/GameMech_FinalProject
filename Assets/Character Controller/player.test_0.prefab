@@ -176,7 +176,7 @@ MonoBehaviour:
   isGrounded: 0
   slowWallBounce: 0.5
   moveDirection: 1
-  moveSpeed: 2
+  moveSpeed: 1.5
   playerRigidbody: {fileID: -3542784600171972135}
   moveVector: {x: 0, y: 0}
 --- !u!114 &-2253750524462889028

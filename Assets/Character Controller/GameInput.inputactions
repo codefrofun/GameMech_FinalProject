@@ -15,13 +15,13 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Car/Worker/Sound",
+                    "name": "Jump",
                     "type": "Button",
-                    "id": "8eb702b2-6285-429e-bcf9-ebbb21455cb1",
+                    "id": "dcfdb3b3-4337-4591-b92f-f20c3b90511a",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
+                    "interactions": "Tap",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -137,12 +137,12 @@
                 },
                 {
                     "name": "",
-                    "id": "6be9fe1b-b39d-47e8-9f1c-b1b6fa735ecc",
+                    "id": "c1aa60aa-78d1-463a-b70f-92a8bff7d50f",
                     "path": "<Keyboard>/space",
-                    "interactions": "Hold",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Car/Worker/Sound",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
