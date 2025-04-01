@@ -36,6 +36,7 @@ public class BombExplosionScript : MonoBehaviour
 
                 audioSource.PlayOneShot(tickSound); // Play the sound once
                 StartCoroutine(WaitForBomb());
+                //Logic to kill the player
             }
         }
     }

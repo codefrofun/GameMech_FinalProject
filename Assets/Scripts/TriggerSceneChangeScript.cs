@@ -17,10 +17,14 @@ public class TriggerSceneChangeScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Player"))
+        if (other.gameObject.CompareTag("Player") && KeyPickupScript.hasKey)
         {
 
             gameManager.sceneManager.LoadSceneToSpawnPosition(sceneName);
+        }
+        else
+        {
+            Debug.Log("You need a key to proceed!"); // Feedback for player
         }
     }
 }

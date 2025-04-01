@@ -1,10 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using System.Collections;
+using Unity.VisualScripting;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -16,18 +15,41 @@ public class PlayerMovement : MonoBehaviour
     private bool isMoving = false;
     public float moveDirection = 1f;
 
+    // For damage + health system
+    [SerializeField] private int maxLives = 3;
+    private static int currentLives;
+
+    public TextMeshPro playerLivesText;
+    public GameObject gameOverPanel;         // Reference to Game Over Panel
+    public Button retryButton;               // Reference to Retry Button
+
+
     private void Start()
     {
+        currentLives = maxLives; // Setting lives to 3 at start
         playerRigidbody = GetComponent<Rigidbody2D>();
         if (playerRigidbody == null)
         {
             Debug.LogError("Rigidbody2D not found on player object!");
         }
+        // GameOverPanel will be inactive at the start
+        gameOverPanel.SetActive(false);
+
+        UpdateLivesText();
+
+        //The Retry Button click event
+        retryButton.onClick.AddListener(RestartLevel);
     }
 
 
     private void Update()
     {
+        if (currentLives <= 0)
+        {
+            HandleDeath();
+            return;
+        }
+
         // Handle player horizontal movement
         HandleHorizontalMovement();
 
@@ -40,15 +62,18 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleHorizontalMovement()
     {
-        float moveInput = Input.GetAxis("Horizontal"); // Gets input for left/right movement (A/D or Left/Right arrow)
-        if (moveInput != 0)  // If there's movement input
+        if (!gameOverPanel.activeSelf)  // Only move if the game over panel is not active
         {
-            playerRigidbody.velocity = new Vector2(moveInput * playerSpeed, playerRigidbody.velocity.y); // Apply movement
-            isMoving = true; // Player is moving
-        }
-        else
-        {
-            isMoving = false; // Player is not moving
+            float moveInput = Input.GetAxis("Horizontal"); // Gets input for left/right movement (A/D or Left/Right arrow)
+            if (moveInput != 0)  // If there's movement input
+            {
+                playerRigidbody.velocity = new Vector2(moveInput * playerSpeed, playerRigidbody.velocity.y); // Apply movement
+                isMoving = true; // Player is moving
+            }
+            else
+            {
+                isMoving = false; // Player is not moving
+            }
         }
     }
 
@@ -85,6 +110,23 @@ public class PlayerMovement : MonoBehaviour
             isGrounded = true; // Player is on the ground, can jump again
             Debug.Log("Player is grounded!");
         }
+
+        if (collision.gameObject.CompareTag("Bomb"))
+        {
+            StartCoroutine(HandleBombImpact());
+        }
+    }
+
+    private IEnumerator HandleBombImpact()
+    {
+        yield return new WaitForSeconds(3f);
+
+        currentLives--;
+        UpdateLivesText();
+        if (currentLives <= 0)
+        {
+            HandleDeath();
+        }
     }
 
     void HandleRestart()
@@ -96,9 +138,28 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // Restart the level by reloading the current scene
-    void RestartLevel()
+    public void RestartLevel()
     {
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name); // Reload current scene
+    }
+
+    void UpdateLivesText()
+    {
+        // Update the TextMeshPro component with the current lives
+        if (playerLivesText != null)
+        {
+            playerLivesText.text = "Lives: " + currentLives.ToString();
+        }
+    }
+
+    void HandleDeath()
+    {
+        // Show Game Over panel
+        gameOverPanel.SetActive(true);
+
+        playerRigidbody.velocity = Vector2.zero; // Stop player movement
+
+        Debug.Log("Game over!");
     }
 }
