@@ -16,22 +16,30 @@ public class PlayerMovement : MonoBehaviour
     public float moveDirection = 1f;
 
     // For damage + health system
-    [SerializeField] private int maxLives = 3;
-    private static int currentLives;
+    [SerializeField] public int maxLives = 3;
+    public static int currentLives;
 
     public TextMeshPro playerLivesText;
     public GameObject gameOverPanel;         // Reference to Game Over Panel
     public Button retryButton;               // Reference to Retry Button
 
+    // Audio for jump
+
+    private AudioSource jumpSound;
 
     private void Start()
     {
+        jumpSound = GetComponent<AudioSource>(); // Get AudioSource attached to this object
+
         currentLives = maxLives; // Setting lives to 3 at start
-        playerRigidbody = GetComponent<Rigidbody2D>();
+
+        playerRigidbody = GetComponent<Rigidbody2D>(); // Get player rigidbody
+
         if (playerRigidbody == null)
         {
             Debug.LogError("Rigidbody2D not found on player object!");
         }
+
         // GameOverPanel will be inactive at the start
         gameOverPanel.SetActive(false);
 
@@ -82,6 +90,11 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
+            if(jumpSound != null)
+            {
+                jumpSound.Play();
+            }
+
             Debug.Log("Player Jumped!");
             playerRigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse); // Apply upward force
             isGrounded = false; // Player is no longer grounded after jumping
@@ -144,7 +157,7 @@ public class PlayerMovement : MonoBehaviour
         SceneManager.LoadScene(currentScene.name); // Reload current scene
     }
 
-    void UpdateLivesText()
+    public void UpdateLivesText()
     {
         // Update the TextMeshPro component with the current lives
         if (playerLivesText != null)
@@ -153,7 +166,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void HandleDeath()
+    public void HandleDeath()
     {
         // Show Game Over panel
         gameOverPanel.SetActive(true);

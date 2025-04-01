@@ -2,17 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static Unity.Collections.AllocatorManager;
 
 public class LavaScript : MonoBehaviour
 {
     public float delayTime = 3f;
+
+    public PlayerMovement playerMoveScript;
+
+    public void Start()
+    {
+        playerMoveScript = FindObjectOfType<PlayerMovement>();
+    }
+
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        if(collider.gameObject.CompareTag("Player"))
+        if (collider.gameObject.CompareTag("Player"))
         {
-            RestartLevel();
-            ReturnAfterDelay();
+            StartCoroutine(HandleLava()); // Start damage sequence
         }
     }
 
@@ -22,8 +28,20 @@ public class LavaScript : MonoBehaviour
         SceneManager.LoadScene(currentScene.name); 
     }
 
-    private IEnumerator ReturnAfterDelay()
+
+    private IEnumerator HandleLava()
     {
-        yield return new WaitForSeconds(delayTime);
+        yield return new WaitForSeconds(0.5f);
+
+        // Reduce player lives
+        PlayerMovement.currentLives--;
+        playerMoveScript.UpdateLivesText();
+
+        RestartLevel();
+
+        if (PlayerMovement.currentLives <= 0)
+        {
+            playerMoveScript.HandleDeath();
+        }
     }
 }
