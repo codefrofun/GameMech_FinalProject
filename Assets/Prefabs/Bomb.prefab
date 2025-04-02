@@ -101,10 +101,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bombExploded: 0
+  explosionRadius: 0.49
   tickSound: {fileID: 8300000, guid: a96dbd88448cfcf408e454b769a02d18, type: 3}
   explodeSound: {fileID: 8300000, guid: 36e9eb629de440547826ab3708b5dd06, type: 3}
   delayTime: 2
-  delay: 2
   explosionParticles: {fileID: 3304480051333648548, guid: dce571810f67bfe4f993451267430809, type: 3}
 --- !u!58 &6801159467808093372
 CircleCollider2D:

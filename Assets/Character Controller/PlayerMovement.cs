@@ -12,12 +12,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] public float playerSpeed = 2f;  // Adjusted speed
     [SerializeField] public float jumpForce = 2.2f;
     [SerializeField] private bool isGrounded;
+
+    public bool isFrozen = false;
     private bool isMoving = false;
     public float moveDirection = 1f;
 
     // For damage + health system
     [SerializeField] public int maxLives = 3;
     public static int currentLives;
+
+
+    //private Rigidbody2D rb;
+
 
     public TextMeshPro playerLivesText;
     public GameObject gameOverPanel;         // Reference to Game Over Panel
@@ -68,9 +74,29 @@ public class PlayerMovement : MonoBehaviour
         HandleRestart();
     }
 
+
     void HandleHorizontalMovement()
     {
-        if (!gameOverPanel.activeSelf)  // Only move if the game over panel is not active
+        if (!gameOverPanel.activeSelf)
+        {
+            if (isFrozen)
+            {
+                Debug.Log("Player is frozen, skipping movement.");
+                return;
+            }
+
+            float moveInput = Input.GetAxis("Horizontal");
+            if (moveInput != 0)
+            {
+                playerRigidbody.velocity = new Vector2(moveInput * playerSpeed, playerRigidbody.velocity.y);
+            }
+        }
+    }
+
+
+    /* void HandleHorizontalMovement()
+    {
+        if (!gameOverPanel.activeSelf && !isFrozen)  // Only move if not frozen and game over panel is not active
         {
             float moveInput = Input.GetAxis("Horizontal"); // Gets input for left/right movement (A/D or Left/Right arrow)
             if (moveInput != 0)  // If there's movement input
@@ -83,29 +109,32 @@ public class PlayerMovement : MonoBehaviour
                 isMoving = false; // Player is not moving
             }
         }
-    }
+    } */
 
 
     void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded && !isFrozen || Input.GetKeyDown(KeyCode.W) && isGrounded && !isFrozen) // Prevent jumping while frozen
         {
-            if(jumpSound != null)
+            if (jumpSound != null)
             {
                 jumpSound.Play();
             }
 
             Debug.Log("Player Jumped!");
-            playerRigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse); // Apply upward force
-            isGrounded = false; // Player is no longer grounded after jumping
+            playerRigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            isGrounded = false;
         }
     }
 
     public void PlayerSwitchDirection()
     {
-        Debug.Log("I hit a wall");
+        if (isFrozen)
+        {
+            Debug.Log("Player is frozen, cannot switch direction.");
+            return;
+        }
 
-        // Reverse player movement direction if they hit a wall
         moveDirection = -moveDirection;
         playerRigidbody.velocity = new Vector2(moveDirection * playerSpeed, playerRigidbody.velocity.y);
     }
@@ -124,18 +153,24 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log("Player is grounded!");
         }
 
+        // Handle bomb collision, but delegate damage handling to BombExplosionScript
         if (collision.gameObject.CompareTag("Bomb"))
         {
-            StartCoroutine(HandleBombImpact());
+            BombExplosionScript bombScript = collision.gameObject.GetComponent<BombExplosionScript>();
+
+            if (bombScript != null)
+            {
+                // Start the bomb explosion logic, including damage checking, from BombExplosionScript
+                StartCoroutine(bombScript.WaitForBomb()); // Start bomb countdown and explosion handling
+            }
         }
     }
 
-    private IEnumerator HandleBombImpact()
+    public void TakeDamage()
     {
-        yield return new WaitForSeconds(3f);
-
         currentLives--;
         UpdateLivesText();
+
         if (currentLives <= 0)
         {
             HandleDeath();
